@@ -65,11 +65,10 @@ def hotel_patch(
 ):
     global hotels
     for hotel in hotels:
-        if hotel["id"] == hotel_id:
-            if title and hotel["title"]:
-                hotel["title"] = title
-            if name and hotel["name"]:
-                hotel["name"] = name
+        if hotel["id"] == hotel_id and title:
+            hotel["title"] = title
+        if hotel["id"] == hotel_id and name:
+            hotel["name"] = name
     return hotels
 
 
