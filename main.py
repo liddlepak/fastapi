@@ -4,7 +4,8 @@ import uvicorn
 
 app = FastAPI()
 
-hotels = [{"id": 1, "title": "Sochi"}, {"id": 2, "title": "Dubai"}]
+hotels = [{"id": 1, "title": "Sochi", "name": "sochi"},
+          {"id": 2, "title": "Dubai", "name": "dubai"}]
 
 
 @app.get("/hotels")
@@ -39,6 +40,37 @@ def hotel_post(title: str = Body(embed=True)):
 
     )
     return {"status": "OK"}
+
+
+@app.put("/hotels/{hotel_id}")
+def hotel_put(
+    hotel_id: int,
+    title: str = Body(),
+    name: str = Body()
+):
+    global hotels
+    for hotel in hotels:
+        if hotel["id"] == hotel_id:
+            hotel["title"] = title
+            hotel["name"] = name
+
+    return hotels
+
+
+@app.patch("/hotels/{hotel_id}")
+def hotel_patch(
+    hotel_id: int,
+    title: str | None = Body(default=None),
+    name: str | None = Body(default=None)
+):
+    global hotels
+    for hotel in hotels:
+        if hotel["id"] == hotel_id:
+            if title and hotel["title"]:
+                hotel["title"] = title
+            if name and hotel["name"]:
+                hotel["name"] = name
+    return hotels
 
 
 if __name__ == "__main__":
