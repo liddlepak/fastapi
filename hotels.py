@@ -21,6 +21,8 @@ hotels = [
 def hotel_get(
     id: int | None = Query(default=None, description="ID отеля"),
     title: str | None = Query(default=None, description="Название отеля"),
+    page: int = Query(default=1, description='Страница'),
+    per_page: int = Query(default=3, description='Кол-во отелей на странице')
 ):
     hotels_ = []
     for hotel in hotels:
@@ -29,7 +31,12 @@ def hotel_get(
         if title and hotel["title"] != title:
             continue
         hotels_.append(hotel)
-    return hotels_
+    end_slice = 0
+    for i in range(1, page + 1):
+        start_slice = end_slice
+        end_slice = start_slice + per_page
+        if page == i:
+            return hotels_[start_slice:end_slice]
 
 
 @router.delete("/{hotel_id}", summary="Удаление отеля")
@@ -61,11 +68,7 @@ def hotel_put(hotel_id: int, hotel_data: Hotel):
     return hotels
 
 
-@router.patch(
-    "/{hotel_id}",
-    summary="Частичное обновление отеля",
-    description="Тут обновляем либо title либо name",
-)
+@router.patch("/{hotel_id}", summary="Частичное обновление отеля")
 def hotel_patch(hotel_data: HotelPatch,
                 hotel_id: int = Path(description="Введите ID отеля")):
     global hotels
