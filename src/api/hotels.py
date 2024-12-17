@@ -1,9 +1,9 @@
-from fastapi import Path, APIRouter
-from sqlalchemy import insert, select
+from fastapi import Path, Query, APIRouter
 
 from src.models.hotels import HotelModel
-from src.schemas.hotels import Hotel,  HotelPatch, HotelList
+from src.schemas.hotels import Hotel,  HotelPatch
 from src.api.dependencies import PaginationDep
+from src.repositories.hotels import HotelsRepositories
 from src.database import async_session_maker
 
 
@@ -11,24 +11,19 @@ router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 
 @router.get("", summary="Список отелей")
-async def hotel_get(pagination: PaginationDep, hotel_data: HotelList):
+async def hotel_get(
+    pagination: PaginationDep,
+    title: str | None = Query(default=None, description="Название отеля"),
+    location: str | None = Query(default=None, description="Локация"),
+):
     per_page = pagination.per_page or 2
     async with async_session_maker() as session:
-        query = select(HotelModel)
-        if hotel_data.title:
-            query = query.filter(HotelModel.title.
-                                 ilike(f'%{hotel_data.title}%'))
-        if hotel_data.location:
-            query = query.filter(HotelModel.location.
-                                 ilike(f'%{hotel_data.location}%'))
-        query = (query.
-                 limit(per_page).
-                 offset(per_page * (pagination.page-1))
-                 )
-        result = await session.execute(query)
-        print(query.compile(compile_kwargs={"literal_binds": True}))
-        hotels = result.scalars().all()
-        return hotels
+        return await HotelsRepositories(session).get_all(
+            title=title,
+            location=location,
+            limit=per_page,
+            offset=per_page * (pagination.page - 1)
+        )
 
 
 @router.delete("/{hotel_id}", summary="Удаление отеля")
@@ -41,12 +36,9 @@ def hotel_delete(hotel_id: int):
 @router.post("", summary="Добавлениe отеля")
 async def hotel_post(hotel_data: Hotel):
     async with async_session_maker() as session:
-        add_hotel_stmt = insert(HotelModel).values(**hotel_data.model_dump())
-        print(add_hotel_stmt.compile(
-            compile_kwargs={"literal_binds": True}))  # Дебаг код
-        await session.execute(add_hotel_stmt)
+        await HotelsRepositories(session).add(hotel_data)
         await session.commit()
-    return {"status": "OK"}
+    return {"status": "OK", "data": hotel_data}
 
 
 @router.put("/{hotel_id}", summary="Обновление отеля")
