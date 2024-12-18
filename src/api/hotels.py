@@ -1,7 +1,6 @@
-from fastapi import Path, Query, APIRouter
+from fastapi import Query, APIRouter
 
-from src.models.hotels import HotelModel
-from src.schemas.hotels import Hotel,  HotelPatch
+from src.schemas.hotels import Hotel, HotelPatch
 from src.api.dependencies import PaginationDep
 from src.repositories.hotels import HotelsRepositories
 from src.database import async_session_maker
@@ -22,15 +21,16 @@ async def hotel_get(
             title=title,
             location=location,
             limit=per_page,
-            offset=per_page * (pagination.page - 1)
+            offset=per_page * (pagination.page - 1),
         )
 
 
 @router.delete("/{hotel_id}", summary="Удаление отеля")
-def hotel_delete(hotel_id: int):
-    global hotels
-    hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
-    return {"status": "OK"}
+async def hotel_delete(hotel_id: int):
+    async with async_session_maker() as session:
+        await HotelsRepositories(session).delete(id=hotel_id)
+        await session.commit()
+        return {"status": "OK"}
 
 
 @router.post("", summary="Добавлениe отеля")
@@ -42,25 +42,15 @@ async def hotel_post(hotel_data: Hotel):
 
 
 @router.put("/{hotel_id}", summary="Обновление отеля")
-def hotel_put(hotel_id: int, hotel_data: Hotel):
-    global hotels
-    for hotel in hotels:
-        if hotel["id"] == hotel_id:
-            hotel["title"] = hotel_data.title
-            hotel["name"] = hotel_data.location
-
-    return hotels
+async def hotel_put(hotel_id: int, hotel_data: Hotel):
+    async with async_session_maker() as session:
+        await HotelsRepositories(session).edit(
+            id=hotel_id,
+            data=hotel_data)
+        await session.commit()
+        return {"status": "OK"}
 
 
 @router.patch("/{hotel_id}", summary="Частичное обновление отеля")
-def hotel_patch(
-    hotel_data: HotelPatch,
-    hotel_id: int = Path(description="ID отеля")
-):
-    global hotels
-    for hotel in hotels:
-        if hotel["id"] == hotel_id and hotel_data.title:
-            hotel["title"] = hotel_data.title
-        if hotel["id"] == hotel_id and hotel_data.location:
-            hotel["name"] = hotel_data.location
-    return hotels
+def hotel_patch(hotel_data: HotelPatch, hotel_id: int):
+    pass
