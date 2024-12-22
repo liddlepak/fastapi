@@ -6,6 +6,7 @@ from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 
 class BaseRepositories:
     model = None
+    schema: BaseModel = None  # type: ignore
 
     def __init__(self, session):
         self.session = session
@@ -21,12 +22,13 @@ class BaseRepositories:
     async def get_one(self, **filters):
         query = select(self.model).filter_by(**filters)
         result = await self.session.execute(query)
-        return await self.get_object(result)
+        model = await self.get_object(result)
+        return self.schema.model_validate(model, from_attributes=True)
 
     async def get_all(self, *args, **kwargs):
         query = select(self.model)
-        results = await self.session.execute(query)
-        return results.scalars().all()
+        result = await self.session.execute(query)
+        return [self.schema.model_validate(model, from_attributes=True) for model in result.scalars().one()]
 
     async def add(self, data: BaseModel):
         add_data_stmt = (
@@ -34,7 +36,8 @@ class BaseRepositories:
             values(**data.model_dump()).
             returning(self.model))
         result = await self.session.execute(add_data_stmt)
-        return result.scalars().one()
+        model = result.scalars().one()
+        return self.schema.model_validate(model, from_attributes=True) 
 
     async def edit(
             self, data: BaseModel, exclude_unset: bool = False, **filters
