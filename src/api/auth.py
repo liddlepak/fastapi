@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Response, HTTPException
+from fastapi import APIRouter, Request, Response, HTTPException
 
 from src.schemas.users import UserRequestAdd, UserAdd
 from src.repositories.users import UsersRepositories
@@ -31,3 +31,11 @@ async def login_user(user_data: UserRequestAdd, response: Response):
         access_token = AuthService().create_access_token({"user_id": user.id})
         response.set_cookie("access_token", access_token)
         return {"access_token": access_token}
+
+
+@router.get("/get_token")
+async def get_token(
+        request: Request
+):
+    access_token = request.cookies['access_token'] or None
+    print(access_token)
