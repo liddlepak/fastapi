@@ -28,7 +28,7 @@ class BaseRepositories:
     async def get_all(self, *args, **kwargs):
         query = select(self.model)
         result = await self.session.execute(query)
-        return [self.schema.model_validate(model, from_attributes=True) for model in result.scalars().one()]
+        return [self.schema.model_validate(model, from_attributes=True) for model in result.scalars().all()]
 
     async def add(self, data: BaseModel):
         add_data_stmt = (
@@ -37,7 +37,7 @@ class BaseRepositories:
             returning(self.model))
         result = await self.session.execute(add_data_stmt)
         model = result.scalars().one()
-        return self.schema.model_validate(model, from_attributes=True) 
+        return self.schema.model_validate(model, from_attributes=True)
 
     async def edit(
             self, data: BaseModel, exclude_unset: bool = False, **filters
