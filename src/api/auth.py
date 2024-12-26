@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Request, Response, HTTPException
+from fastapi import APIRouter, Response, HTTPException
 
 from src.schemas.users import UserRequestAdd, UserAdd
 from src.repositories.users import UsersRepositories
 from src.database import async_session_maker
 from src.services.auth import AuthService
-from src.api.dependencies import UserIdDep, get_token
+from src.api.dependencies import UserIdDep
 
 
 router = APIRouter(prefix="/auth", tags=["Авторизация и аутентификация"])
@@ -42,7 +42,7 @@ async def get_me(
         return await UsersRepositories(session).get_one(id=user_id)
 
 
-@router.get("/logout")
+@router.post("/logout")
 async def logout_user(response: Response):
     response.delete_cookie("access_token")
     return "Вы вышли из системы"

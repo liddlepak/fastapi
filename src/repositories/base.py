@@ -6,7 +6,7 @@ from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 
 class BaseRepositories:
     model = None
-    schema: BaseModel = None  # type: ignore
+    schema = None  # type: ignore
 
     def __init__(self, session):
         self.session = session
@@ -17,7 +17,7 @@ class BaseRepositories:
         except MultipleResultsFound:
             raise HTTPException(status_code=400, detail='Bad Request')
         except NoResultFound:
-            raise HTTPException(status_code=404, detail="Not Found")
+            raise HTTPException(status_code=404, detail="Объект не найден")
 
     async def get_one(self, **filters):
         query = select(self.model).filter_by(**filters)
@@ -28,16 +28,18 @@ class BaseRepositories:
     async def get_all(self, *args, **kwargs):
         query = select(self.model)
         result = await self.session.execute(query)
-        return [self.schema.model_validate(model, from_attributes=True) for model in result.scalars().all()]
+        return [self.schema.model_validate(
+            model, from_attributes=True) for model in result.scalars().all()]
 
     async def add(self, data: BaseModel):
         add_data_stmt = (
             insert(self.model).  # type: ignore
             values(**data.model_dump()).
             returning(self.model))
+        print(add_data_stmt.compile(compile_kwargs={"literal_binds": True}))
         result = await self.session.execute(add_data_stmt)
         model = result.scalars().one()
-        return self.schema.model_validate(model, from_attributes=True)
+        return self.schema.model_validate(model, from_attributes=True)  # type: ignore
 
     async def edit(
             self, data: BaseModel, exclude_unset: bool = False, **filters
