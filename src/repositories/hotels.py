@@ -6,8 +6,8 @@ from src.schemas.hotels import Hotel
 
 
 class HotelsRepositories(BaseRepositories):
-    model = HotelModel  # type: ignore
-    schema = Hotel  # type: ignore
+    model = HotelModel
+    schema = Hotel
 
     async def get_all(self, title, location, limit, offset):
         query = select(HotelModel)

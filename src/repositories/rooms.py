@@ -6,5 +6,5 @@ from src.schemas.rooms import Rooms
 
 
 class RoomsRepositories(BaseRepositories):
-    model = RoomsModel  # type: ignore
-    schema = Rooms  # type: ignore
+    model = RoomsModel
+    schema = Rooms

@@ -1,3 +1,5 @@
+from typing import Optional, Any
+
 from fastapi import HTTPException
 from sqlalchemy import select, insert, delete, update
 from pydantic import BaseModel
@@ -5,8 +7,8 @@ from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 
 
 class BaseRepositories:
-    model = None
-    schema = None  # type: ignore
+    model: Optional[Any] = None
+    schema: Optional[Any] = None
 
     def __init__(self, session):
         self.session = session
