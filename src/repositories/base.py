@@ -49,6 +49,7 @@ class BaseRepositories:
             filter_by(**filters).
             values(**data.model_dump(exclude_unset=exclude_unset)).
             returning(self.model.id))  # type: ignore
+        print(update_stmt.compile(compile_kwargs={"literal_binds": True}))
         result = await self.session.execute(update_stmt)
         await self.get_object(result)
 

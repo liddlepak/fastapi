@@ -8,16 +8,17 @@ class RoomsPatch(BaseModel):
     quantity: int | None = None
 
 
-class RoomsPut(BaseModel):
+class RoomsRequest(BaseModel):
     title: str
-    description: str
+    description: str | None = None
     price: int
     quantity: int
 
 
-class Rooms(RoomsPatch):
+class Rooms(RoomsRequest):
     id: int
+    hotel_id: int
 
 
-class RoomsAdd(RoomsPut):
+class RoomsAdd(RoomsRequest):
     hotel_id: int
