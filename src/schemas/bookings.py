@@ -3,8 +3,14 @@ from datetime import date
 from pydantic import BaseModel
 
 
+class BookingRequest(BaseModel):
+    room_id: int
+    date_from: date
+    date_to: date
+
+
 class BookingAdd(BaseModel):
-    rooms_id: int
+    room_id: int
     user_id: int
     date_from: date
     date_to: date
