@@ -17,13 +17,11 @@ async def get_hotels(
     title: str | None = Query(default=None, description="Название отеля"),
     location: str | None = Query(default=None, description="Локация"),
 ):
-    return await db.hotels.get_rooms(date_from=date_from, date_to=date_to)
-    # per_page = pagination.per_page or 2
-    # return await db.hotels.get_all(
-    #     title=title,
-    #     location=location,
-    #     limit=per_page,
-    #     offset=per_page * (pagination.page - 1))
+    per_page = pagination.per_page or 2
+    return await db.hotels.get_free_hotels(
+        date_from=date_from, date_to=date_to,
+        title=title, location=location,
+        limit=per_page, offset=per_page * (pagination.page - 1))
 
 
 @router.get("/{hotel_id}", summary="Отель")
