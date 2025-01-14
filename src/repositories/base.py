@@ -27,8 +27,8 @@ class BaseRepositories:
         model = await self.get_object(result)
         return self.schema.model_validate(model, from_attributes=True)
 
-    async def get_all(self, *args, **kwargs):
-        query = select(self.model)
+    async def get_filtred(self, *filter, **filters):
+        query = select(self.model).filter(*filter).filter_by(**filters)
         result = await self.session.execute(query)
         return [self.schema.model_validate(
             model, from_attributes=True) for model in result.scalars().all()]
@@ -37,11 +37,12 @@ class BaseRepositories:
         add_data_stmt = (
             insert(self.model).  # type: ignore
             values(**data.model_dump()).
-            returning(self.model))
+            returning(self.model))  # type: ignore
         print(add_data_stmt.compile(compile_kwargs={"literal_binds": True}))
         result = await self.session.execute(add_data_stmt)
         model = result.scalars().one()
-        return self.schema.model_validate(model, from_attributes=True)  # type: ignore
+        return self.schema.model_validate(  # type: ignore
+            model, from_attributes=True)
 
     async def edit(
             self, data: BaseModel, exclude_unset: bool = False, **filters
