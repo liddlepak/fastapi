@@ -5,7 +5,6 @@ from src.models.rooms import RoomsModel
 
 
 def get_free_rooms(date_from, date_to, hotel_id: int | None = None):
-
     rooms_count = (
         select(
             BookingsModel.room_id, func.count("*").label("rooms_booked")).
@@ -26,7 +25,7 @@ def get_free_rooms(date_from, date_to, hotel_id: int | None = None):
 
     rooms_ids_in_hotel = select(RoomsModel.id).select_from(RoomsModel)
     if hotel_id is not None:
-        rooms_ids_in_hotel.filter_by(hotel_id=hotel_id)
+        rooms_ids_in_hotel = rooms_ids_in_hotel.filter_by(hotel_id=hotel_id)
 
     rooms_ids_in_hotel = rooms_ids_in_hotel.subquery()  # type: ignore
 

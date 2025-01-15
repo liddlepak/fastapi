@@ -8,7 +8,7 @@ router = APIRouter(prefix="/bookings", tags=["Бронирование"])
 
 @router.get("", summary="Список бронирований")
 async def get_all_bookings(db: DBDep):
-    return await db.bookings.get_filtered()
+    return await db.bookings.get_filtred()
 
 
 @router.get("/me", summary="Список моих бронирований")
