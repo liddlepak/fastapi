@@ -13,12 +13,16 @@ class RoomsRequest(BaseModel):
     description: str | None = None
     price: int
     quantity: int
+    facilities_ids: list[int] | None = None
 
 
-class Rooms(RoomsRequest):
+class RoomsAdd(BaseModel):
+    hotel_id: int
+    title: str
+    description: str | None = None
+    price: int
+    quantity: int
+
+
+class Rooms(RoomsAdd):
     id: int
-    hotel_id: int
-
-
-class RoomsAdd(RoomsRequest):
-    hotel_id: int

@@ -38,11 +38,15 @@ class BaseRepositories:
             insert(self.model).  # type: ignore
             values(**data.model_dump()).
             returning(self.model))  # type: ignore
-        print(add_data_stmt.compile(compile_kwargs={"literal_binds": True}))
         result = await self.session.execute(add_data_stmt)
         model = result.scalars().one()
         return self.schema.model_validate(  # type: ignore
             model, from_attributes=True)
+
+    async def add_bulk(self, data: list[BaseModel]):
+        add_data_stmt = insert(self.model).values(  # type: ignore
+            [item.model_dump() for item in data])
+        await self.session.execute(add_data_stmt)
 
     async def edit(
             self, data: BaseModel, exclude_unset: bool = False, **filters

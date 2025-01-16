@@ -15,3 +15,4 @@ class RoomsRepositories(BaseRepositories):
             date_to=date_to
         )
         return await self.get_filtred(RoomsModel.id.in_(free_ids_rooms))
+

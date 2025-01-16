@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, Query
 import sqlalchemy.exc
 
 from src.schemas.rooms import RoomsAdd, RoomsPatch, RoomsRequest
+from src.schemas.facilities import RoomsFacilitiesAdd
 from src.api.dependencies import DBDep
 
 
@@ -38,6 +39,11 @@ async def add_room(room_data: RoomsRequest, hotel_id: int, db: DBDep):
     except sqlalchemy.exc.IntegrityError:
         raise HTTPException(
             status_code=404, detail="Такого отеля не существует")
+    facilities_ids = room_data.facilities_ids
+    if facilities_ids is not None:
+        facilities_data = [RoomsFacilitiesAdd(
+            room_id=room.id, facility_id=id) for id in facilities_ids]
+        await db.room_facilities.add_bulk(facilities_data)
     await db.commit()
     return {"room": room}
 
