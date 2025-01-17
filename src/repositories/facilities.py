@@ -25,4 +25,5 @@ class RoomsFacilitiesRepositories(BaseRepositories):
             update_facilities = [RoomsFacilitiesAdd(
                 room_id=room_id, facility_id=id) for id in add_ids]
             await self.add_bulk(update_facilities)
-        await self.delete_bulk(delete_ids)
+        if delete_ids:
+            await self.delete_bulk(delete_ids)
