@@ -55,7 +55,7 @@ class BaseRepositories:
             update(self.model).  # type: ignore
             filter_by(**filters).
             values(**data.model_dump(exclude_unset=exclude_unset)).
-            returning(self.model.id))  # type: ignore
+            returning(self.model))  # type: ignore
         print(update_stmt.compile(compile_kwargs={"literal_binds": True}))
         result = await self.session.execute(update_stmt)
         await self.get_object(result)
@@ -67,3 +67,10 @@ class BaseRepositories:
             returning(self.model.id))
         result = await self.session.execute(delete_stmt)
         await self.get_object(result)
+
+    async def delete_bulk(self, delete_ids):
+        delete_stmt = (
+            delete(self.model).
+            filter(self.model.facility_id.in_(delete_ids))
+        )
+        await self.session.execute(delete_stmt)

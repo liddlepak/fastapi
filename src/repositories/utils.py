@@ -38,3 +38,12 @@ def get_free_rooms(date_from, date_to, hotel_id: int | None = None):
         )
     )
     return query
+
+
+def check_empty_request(update_room_data):
+    for item in update_room_data:
+        if item[1] is None:
+            continue
+        else:
+            return True
+    return False
