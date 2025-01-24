@@ -7,6 +7,7 @@ from src.repositories.facilities import (
 
 
 class DBManager():
+    """Реализия абстракции запросов к БД."""
     def __init__(self, session_factory):
         self.session_factory = session_factory
 

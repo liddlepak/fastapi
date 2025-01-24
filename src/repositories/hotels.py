@@ -4,16 +4,18 @@ from src.repositories.utils import get_free_rooms
 from src.repositories.base import BaseRepositories
 from src.models.rooms import RoomsModel
 from src.models.hotels import HotelModel
-from src.schemas.hotels import Hotel
+from src.repositories.mappers.mappers import HotelMapper
 
 
 class HotelsRepositories(BaseRepositories):
+    """Репозиторий для отелей."""
     model = HotelModel
-    schema = Hotel
+    mapper = HotelMapper
 
     async def get_free_hotels(
             self, date_from, date_to, title, limit, offset, location
             ):
+        """Получение свободных отелей."""
         free_ids_rooms = get_free_rooms(date_from=date_from, date_to=date_to)
         free_hotels_ids = (
             select(RoomsModel.hotel_id).
@@ -30,5 +32,5 @@ class HotelsRepositories(BaseRepositories):
                     HotelModel.location).contains(location.lstrip().lower()))
         query = query.limit(limit).offset(offset)
         result = await self.session.execute(query)
-        return [Hotel.model_validate(
-            model, from_attributes=True) for model in result.scalars().all()]
+        return [self.mapper.map_to_domain_entity(
+            model) for model in result.scalars().all()]

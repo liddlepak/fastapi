@@ -1,6 +1,7 @@
 from datetime import date
 
 from fastapi import APIRouter, HTTPException, Query
+from fastapi_cache.decorator import cache
 import sqlalchemy.exc
 
 from src.repositories.utils import check_empty_request
@@ -19,19 +20,23 @@ router = APIRouter(prefix="/hotels", tags=["Номера"])
 
 
 @router.get("/{hotel_id}/rooms", summary="Список номеров")
+@cache(expire=30)
 async def get_rooms(
     hotel_id: int,
     db: DBDep,
     date_from: date = Query(example="2025-01-01"),
     date_to: date = Query(example="2025-01-16"),
-):
+) -> list:
+    """Получение списка номеров в конкретном отеле."""
     return await db.rooms.get_filtered_by_time(
         hotel_id=hotel_id, date_from=date_from, date_to=date_to
     )
 
 
 @router.get("/{hotel_id}/rooms/{room_id}", summary="Поиск номера")
-async def get_room(hotel_id: int, room_id: int, db: DBDep):
+@cache(expire=30)
+async def get_room(hotel_id: int, room_id: int, db: DBDep) -> list:
+    """Получение номера в конкретном отеле."""
     return await db.rooms.get_one(id=room_id, hotel_id=hotel_id)
 
 
@@ -39,6 +44,7 @@ async def get_room(hotel_id: int, room_id: int, db: DBDep):
 async def add_room(
     room_data: RoomsRequestWithFacilities, hotel_id: int, db: DBDep
 ):
+    """Добавление номера в отель."""
     _room_data = RoomsAdd(hotel_id=hotel_id, **room_data.model_dump())
     try:
         room = await db.rooms.add(_room_data)
@@ -60,6 +66,7 @@ async def room_put(
     room_data: RoomsRequestWithFacilities,
     hotel_id: int, room_id: int, db: DBDep
 ):
+    """Редактирование номера."""
     update_room_data = RoomsPut(**room_data.model_dump())
     await db.room_facilities.edit_facility(room_data.facilities_ids, room_id)
     await db.rooms.edit(update_room_data, hotel_id=hotel_id, id=room_id)
@@ -71,6 +78,7 @@ async def room_put(
 async def room_patch(
     room_data: RoomsPatchWithFacilities, hotel_id: int, room_id: int, db: DBDep
 ):
+    """Частичное редактирование номера."""
     update_room_data = RoomsPatch(**room_data.model_dump(exclude_unset=True))
     if check_empty_request(update_room_data):
         await db.rooms.edit(
@@ -85,6 +93,7 @@ async def room_patch(
 
 @router.delete("/{hotel_id}/rooms/{room_id}", summary="Удаление номера")
 async def room_delete(hotel_id: int, room_id: int, db: DBDep):
+    """Удаление номера."""
     await db.rooms.delete(hotel_id=hotel_id, id=room_id)
     await db.commit()
     return {"status": "OK"}

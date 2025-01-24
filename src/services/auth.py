@@ -8,12 +8,15 @@ from src.config import settings
 
 
 class AuthService():
+    """Класс авторизации."""
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     def verify_password(self, plain_password, hashed_password):
+        """Проверка пароля."""
         return self.pwd_context.verify(plain_password, hashed_password)
 
     def create_access_token(self, data: dict) -> str:
+        """Создание токена доступа."""
         to_encode = data.copy()
         expire = datetime.now(timezone.utc) + timedelta(
             minutes=settings.EXPIRE_MINUTES)
@@ -25,6 +28,7 @@ class AuthService():
         return encoded_jwt
 
     def decode_token(self, token: str):
+        """Декодирование токена."""
         try:
             return jwt.decode(
                 token,

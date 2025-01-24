@@ -5,6 +5,7 @@ from src.models.rooms import RoomsModel
 
 
 def get_free_rooms(date_from, date_to, hotel_id: int | None = None):
+    """Получение списка свободных номеров."""
     rooms_count = (
         select(
             BookingsModel.room_id, func.count("*").label("rooms_booked")).
@@ -41,6 +42,7 @@ def get_free_rooms(date_from, date_to, hotel_id: int | None = None):
 
 
 def check_empty_request(update_room_data):
+    """Проверка на пустой запрос."""
     for item in update_room_data:
         if item[1] is None:
             continue

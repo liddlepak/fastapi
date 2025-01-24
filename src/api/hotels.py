@@ -1,5 +1,6 @@
 from datetime import date
 from fastapi import Query, APIRouter
+from fastapi_cache.decorator import cache
 
 from src.schemas.hotels import HotelAdd, HotelPatch
 from src.api.dependencies import PaginationDep, DBDep
@@ -9,6 +10,7 @@ router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 
 @router.get("", summary="Список отелей")
+@cache(expire=30)
 async def get_hotels(
     pagination: PaginationDep,
     db: DBDep,
@@ -16,7 +18,8 @@ async def get_hotels(
     date_to: date = Query(example="2025-01-16"),
     title: str | None = Query(default=None, description="Название отеля"),
     location: str | None = Query(default=None, description="Локация"),
-):
+) -> list:
+    """Получение всех отелей."""
     per_page = pagination.per_page or 2
     return await db.hotels.get_free_hotels(
         date_from=date_from, date_to=date_to,
@@ -25,12 +28,15 @@ async def get_hotels(
 
 
 @router.get("/{hotel_id}", summary="Отель")
-async def get_hotel(hotel_id: int, db: DBDep):
+@cache(expire=30)
+async def get_hotel(hotel_id: int, db: DBDep) -> list:
+    """Получение отеля по id."""
     return await db.hotels.get_one(id=hotel_id)
 
 
 @router.post("", summary="Добавлениe отеля")
 async def hotel_post(hotel_data: HotelAdd, db: DBDep):
+    """Функция для добавления отеля."""
     hotel = await db.hotels.add(hotel_data)
     await db.commit()
     return {"status": "OK", "data": hotel}
@@ -38,6 +44,7 @@ async def hotel_post(hotel_data: HotelAdd, db: DBDep):
 
 @router.put("/{hotel_id}", summary="Обновление отеля")
 async def hotel_put(hotel_id: int, hotel_data: HotelAdd, db: DBDep):
+    """Редактирование отеля."""
     await db.hotels.edit(
         hotel_data,
         id=hotel_id)
@@ -47,6 +54,7 @@ async def hotel_put(hotel_id: int, hotel_data: HotelAdd, db: DBDep):
 
 @router.patch("/{hotel_id}", summary="Частичное обновление отеля")
 async def hotel_patch(hotel_data: HotelPatch, hotel_id: int, db: DBDep):
+    """Частичное редактирование отеля."""
     await db.hotels.edit(
         hotel_data,
         exclude_unset=True,
@@ -57,6 +65,7 @@ async def hotel_patch(hotel_data: HotelPatch, hotel_id: int, db: DBDep):
 
 @router.delete("/{hotel_id}", summary="Удаление отеля")
 async def hotel_delete(hotel_id: int, db: DBDep):
+    """Удалание отеля из БД."""
     await db.hotels.delete(id=hotel_id)
     await db.commit()
     return {"status": "OK"}
